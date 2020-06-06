@@ -39,7 +39,7 @@ class BoardConfigurationFactor{
                     BoardPos.get(6, 2) to PyramidPiece(opponentColor, EDirection.LEFT),
                     BoardPos.get(5, 3) to PyramidPiece(playerColor, EDirection.UP),
                     BoardPos.get(4, 9) to PyramidPiece(playerColor, EDirection.UP),
-                    BoardPos.get(4, 7) to PyramidPiece(opponentColor, EDirection.RIGHT),
+                    BoardPos.get(4, 7) to PyramidPiece(opponentColor, EDirection.DOWN),
                     BoardPos.get(4, 5) to ScarabPiece(opponentColor, EDirection.RIGHT),
                     BoardPos.get(4, 4) to ScarabPiece(opponentColor, EDirection.UP),
                     BoardPos.get(4, 2) to PyramidPiece(playerColor, EDirection.LEFT),

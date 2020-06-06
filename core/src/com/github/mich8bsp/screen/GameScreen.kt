@@ -5,15 +5,11 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.math.MathUtils
-import com.badlogic.gdx.math.Rectangle
+import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.utils.Array
-import com.badlogic.gdx.utils.TimeUtils
 import com.github.mich8bsp.Game
 import com.github.mich8bsp.logic.*
 import ktx.app.KtxScreen
-import ktx.collections.iterate
 import ktx.graphics.use
 import ktx.log.logger
 
@@ -46,7 +42,7 @@ class GameScreen(private val game: Game) : KtxScreen {
         // begin a new batch and draw the bucket and all drops
         game.batch.use {
              board.getCells().forEach { cell ->
-                 game.batch.draw(textureManager.getTexture(cell.cellColor, cell.piece), cell.pos.j.toFloat() * cellSize, cell.pos.i.toFloat() * cellSize)
+                 renderCell(cell)
              }
         }
 
@@ -67,6 +63,23 @@ class GameScreen(private val game: Game) : KtxScreen {
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
 //            bucket.x += 200 * delta
         }
+    }
+
+    private fun renderCell(cell: BoardCell){
+        val cellX: Float = cell.pos.j.toFloat() * cellSize
+        val cellY: Float = cell.pos.i.toFloat() * cellSize
+        val texture: Texture? = textureManager.getTexture(cell.cellColor, cell.piece)
+        val rotationDegrees: Float = when(cell.piece?.direction) {
+            EDirection.UP -> 0f
+            EDirection.RIGHT -> 270f
+            EDirection.DOWN -> 180f
+            EDirection.LEFT -> 90f
+            else -> 0f
+        }
+        val textureRegion = TextureRegion(texture)
+        val w = textureRegion.regionWidth.toFloat()
+        val h = textureRegion.regionHeight.toFloat()
+        game.batch.draw(textureRegion, cellX, cellY, w/2, h/2, w, h, 1f, 1f, rotationDegrees)
     }
 
     override fun show() {
