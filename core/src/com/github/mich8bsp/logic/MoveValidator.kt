@@ -14,7 +14,8 @@ class MoveValidator(private val board: Board){
         val validRange = BoardPos.areNeighbors(move.from, move.to)
         val sourceNotSphinx = board.getCell(move.from)?.piece !is SphinxPiece
         val targetNotOccupied = board.getCell(move.to)?.isEmpty() ?: false
-        return validRange && targetNotOccupied && sourceNotSphinx
+        val targetNotOpponentsCell = board.getCell(move.to)?.cellColor != board.getCell(move.from)?.piece?.color?.other()
+        return validRange && targetNotOccupied && sourceNotSphinx && targetNotOpponentsCell
     }
 
 
@@ -25,7 +26,10 @@ class MoveValidator(private val board: Board){
 
         val switchingTwoPieces = cell1?.piece!=null && cell2?.piece!=null
         val notSwitchingWithSphinx = cell1?.piece !is SphinxPiece && cell2?.piece !is SphinxPiece
-        return validRange && switchingTwoPieces && notSwitchingWithSphinx
+        val notOnOpponentsCellAfterSwitch = cell1?.cellColor != cell2?.piece?.color?.other() &&
+                cell2?.cellColor != cell1?.piece?.color?.other()
+
+        return validRange && switchingTwoPieces && notSwitchingWithSphinx && notOnOpponentsCellAfterSwitch
     }
 
 

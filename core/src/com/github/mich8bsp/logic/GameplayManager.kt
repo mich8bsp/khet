@@ -2,6 +2,7 @@ package com.github.mich8bsp.logic
 
 class GameplayManager {
 
+    private var gameOver: Boolean = false
     private val playerColor: EPlayerColor = EPlayerColor.GREY
     private val piecesConfiguration: Map<BoardPos, Piece> = when (playerColor) {
         EPlayerColor.GREY -> EBoardConfigurations.CLASSIC_GREY.configuration
@@ -14,6 +15,9 @@ class GameplayManager {
     private var cellSelected: BoardCell? = null
 
     fun onCellSelected(cell: BoardCell) {
+        if(gameOver){
+            return
+        }
         cellSelected = when (cellSelected) {
             cell -> {
                 null
@@ -44,6 +48,9 @@ class GameplayManager {
     }
 
     fun onRotate(direction: ERotationDirection) {
+        if(gameOver){
+            return
+        }
         val isRotationAllowed = cellSelected!=null && cellSelected?.piece!=null && cellSelected?.piece?.color == playerColor
         if(isRotationAllowed){
             val move = RotationMove(cellSelected!!.pos, direction)
@@ -59,6 +66,11 @@ class GameplayManager {
     fun onMoveFinished() {
         cellSelected = null
         board.fireLaser(playerColor)
+        if(board.isPharaohDead()){
+            val winner = board.getWinner()
+            println("Game Over! $winner won!")
+            gameOver = true
+        }
     }
 
 }

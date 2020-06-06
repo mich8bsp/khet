@@ -3,6 +3,12 @@ package com.github.mich8bsp.logic
 import kotlin.math.abs
 
 class Board(val rows: Int, val cols: Int, piecesConfiguration: Map<BoardPos, Piece>, playerColor: EPlayerColor){
+
+    private val pharaohHealth: MutableMap<EPlayerColor, Boolean> = mutableMapOf(
+            EPlayerColor.GREY to true,
+            EPlayerColor.RED to true
+    )
+
     private val cells: Array<Array<BoardCell>> = Array(rows) { i -> Array(cols) { j ->
        BoardCell.create(BoardPos.get(i, j), piecesConfiguration[BoardPos.get(i, j)], rows, cols, playerColor)
     } }
@@ -75,11 +81,32 @@ class Board(val rows: Int, val cols: Int, piecesConfiguration: Map<BoardPos, Pie
                 laserDirection = currCell.piece?.hitWithRay(laserDirection.reverse())
             }
             if(currCell.piece?.isDead() == true){
+                if(currCell.piece is PharaohPiece){
+                    pharaohHealth[currCell.piece!!.color] = false
+                }
                 currCell.piece = null
             }
             currCell = if(laserDirection!=null){
                 getNeighborCell(currCell, laserDirection)
             }else{
+                null
+            }
+        }
+    }
+
+    fun isPharaohDead(): Boolean {
+        return !pharaohHealth.values.fold(true) {  acc, curr  -> acc && curr }
+    }
+
+    fun getWinner(): EPlayerColor? {
+        return when {
+            pharaohHealth[EPlayerColor.GREY] == false -> {
+                EPlayerColor.RED
+            }
+            pharaohHealth[EPlayerColor.RED] == false -> {
+                EPlayerColor.GREY
+            }
+            else -> {
                 null
             }
         }
