@@ -2,7 +2,7 @@ package com.github.mich8bsp.logic
 
 import kotlin.math.abs
 
-class Board(rows: Int, cols: Int, piecesConfiguration: Map<BoardPos, Piece>, playerColor: EPieceColor){
+class Board(val rows: Int, val cols: Int, piecesConfiguration: Map<BoardPos, Piece>, playerColor: EPlayerColor){
     private val cells: Array<Array<BoardCell>> = Array(rows) { i -> Array(cols) { j ->
        BoardCell.create(BoardPos.get(i, j), piecesConfiguration[BoardPos.get(i, j)], rows, cols, playerColor)
     } }
@@ -33,24 +33,83 @@ class Board(rows: Int, cols: Int, piecesConfiguration: Map<BoardPos, Piece>, pla
         return cells.flatten()
     }
 
-    fun getCell(x: Int, y: Int): BoardCell {
-        return cells[x][y]
+    fun getCell(x: Int, y: Int): BoardCell? {
+        return if(x<0 || x>=rows || y<0 || y>=cols){
+            null
+        }else{
+            cells[x][y]
+        }
     }
 
-    fun getCell(pos: BoardPos): BoardCell {
+    fun getCell(pos: BoardPos): BoardCell? {
         return getCell(pos.i, pos.j)
+    }
+
+    fun getNeighborCell(cell: BoardCell, direction: EDirection): BoardCell? {
+        val neighborPos: BoardPos = BoardPos.getNeighbor(cell.pos, direction)
+        return getCell(neighborPos)
+    }
+
+    fun fireLaser(laserOfPlayer: EPlayerColor) {
+        val sphinx1Cell = getCell(0, cols-1)
+        val sphinx2Cell = getCell(rows-1, 0)
+        val startCell = if(sphinx1Cell?.piece?.color == laserOfPlayer){
+            sphinx1Cell
+        }else{
+            sphinx2Cell
+        }
+        if(startCell!=null){
+            fireLaser(startCell)
+        }else{
+            println("couldn't find cell of sphinx to fire laser from")
+        }
+    }
+
+    fun fireLaser(origin: BoardCell) {
+        origin.activateLaser()
+        var currCell = getNeighborCell(origin, origin.piece!!.direction)
+        var laserDirection: EDirection? = origin.piece?.direction
+        while(currCell!=null){
+           currCell.activateLaser()
+            if(currCell.piece!=null && laserDirection!=null){
+                laserDirection = currCell.piece?.hitWithRay(laserDirection.reverse())
+            }
+            if(currCell.piece?.isDead() == true){
+                currCell.piece = null
+            }
+            currCell = if(laserDirection!=null){
+                getNeighborCell(currCell, laserDirection)
+            }else{
+                null
+            }
+        }
     }
 }
 
-class BoardCell(val pos: BoardPos, val cellColor: EPieceColor?){
+class BoardCell(val pos: BoardPos, val cellColor: EPlayerColor?){
     var piece: Piece? = null
+    var laser: Laser? = null
 
     fun isEmpty(): Boolean {
         return piece == null
     }
 
+    fun activateLaser() {
+        laser = Laser()
+        println("imma firin mah lazor")
+    }
+
+    fun reduceLaserIntensity(delta: Float){
+//        println("reducing laser intensity by $delta")
+        laser?.dropIntensity(delta)
+        if(laser?.intensity ?: 0f <= 0f){
+//            println("shutting down laser")
+            laser = null
+        }
+    }
+
     companion object {
-        private fun getEmptyCellColor(pos: BoardPos, boardRows: Int, boardCols: Int, playerColor: EPieceColor): EPieceColor? {
+        private fun getEmptyCellColor(pos: BoardPos, boardRows: Int, boardCols: Int, playerColor: EPlayerColor): EPlayerColor? {
             if(pos.j == boardCols-1){
                 return playerColor
             }
@@ -66,8 +125,8 @@ class BoardCell(val pos: BoardPos, val cellColor: EPieceColor?){
             return null;
         }
 
-        fun create(pos: BoardPos, piece: Piece?, boardRows: Int, boardCols: Int, playerColor: EPieceColor): BoardCell {
-            val cellColor: EPieceColor? = if(piece==null){
+        fun create(pos: BoardPos, piece: Piece?, boardRows: Int, boardCols: Int, playerColor: EPlayerColor): BoardCell {
+            val cellColor: EPlayerColor? = if(piece==null){
                getEmptyCellColor(pos, boardRows, boardCols, playerColor)
             }else{
                 null
@@ -89,6 +148,15 @@ data class BoardPos(val i: Int, val j: Int){
             val diffX = abs(pos1.i - pos2.i)
             val diffY = abs(pos1.j - pos2.j)
             return (diffX + diffY > 0) && diffX<=1 && diffY<=1
+        }
+
+        fun getNeighbor(pos: BoardPos, direction: EDirection): BoardPos {
+            return when(direction){
+                EDirection.DOWN -> get(pos.i-1, pos.j)
+                EDirection.RIGHT -> get(pos.i, pos.j+1)
+                EDirection.LEFT -> get(pos.i, pos.j-1)
+                EDirection.UP -> get(pos.i+1, pos.j)
+            }
         }
     }
 }

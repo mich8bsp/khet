@@ -6,22 +6,23 @@ import com.github.mich8bsp.logic.*
 
 class TextureManager{
     private val emptyCellTexture: Texture = Texture(Gdx.files.internal("images/empty.png"))
+    val laserTexture: Texture = Texture(Gdx.files.internal("images/laser.png"))
     private val texturesRepo: Map<TextureKey, Texture> = mapOf(
-            TextureKey("anubis", EPieceColor.RED) to Texture(Gdx.files.internal("images/anubis_red.png")),
-            TextureKey("anubis", EPieceColor.GREY) to Texture(Gdx.files.internal("images/anubis_grey.png")),
-            TextureKey("pharaoh", EPieceColor.RED) to Texture(Gdx.files.internal("images/pharaoh_red.png")),
-            TextureKey("pharaoh", EPieceColor.GREY) to Texture(Gdx.files.internal("images/pharaoh_grey.png")),
-            TextureKey("pyramid", EPieceColor.RED) to Texture(Gdx.files.internal("images/pyramid_red.png")),
-            TextureKey("pyramid", EPieceColor.GREY) to Texture(Gdx.files.internal("images/pyramid_grey.png")),
-            TextureKey("scarab", EPieceColor.RED) to Texture(Gdx.files.internal("images/scarab_red.png")),
-            TextureKey("scarab", EPieceColor.GREY) to Texture(Gdx.files.internal("images/scarab_grey.png")),
-            TextureKey("sphinx", EPieceColor.RED) to Texture(Gdx.files.internal("images/sphinx_red.png")),
-            TextureKey("sphinx", EPieceColor.GREY) to Texture(Gdx.files.internal("images/sphinx_grey.png")),
-            TextureKey("empty", EPieceColor.RED) to Texture(Gdx.files.internal("images/empty_red.png")),
-            TextureKey("empty", EPieceColor.GREY) to Texture(Gdx.files.internal("images/empty_grey.png"))
+            TextureKey("anubis", EPlayerColor.RED) to Texture(Gdx.files.internal("images/anubis_red.png")),
+            TextureKey("anubis", EPlayerColor.GREY) to Texture(Gdx.files.internal("images/anubis_grey.png")),
+            TextureKey("pharaoh", EPlayerColor.RED) to Texture(Gdx.files.internal("images/pharaoh_red.png")),
+            TextureKey("pharaoh", EPlayerColor.GREY) to Texture(Gdx.files.internal("images/pharaoh_grey.png")),
+            TextureKey("pyramid", EPlayerColor.RED) to Texture(Gdx.files.internal("images/pyramid_red.png")),
+            TextureKey("pyramid", EPlayerColor.GREY) to Texture(Gdx.files.internal("images/pyramid_grey.png")),
+            TextureKey("scarab", EPlayerColor.RED) to Texture(Gdx.files.internal("images/scarab_red.png")),
+            TextureKey("scarab", EPlayerColor.GREY) to Texture(Gdx.files.internal("images/scarab_grey.png")),
+            TextureKey("sphinx", EPlayerColor.RED) to Texture(Gdx.files.internal("images/sphinx_red.png")),
+            TextureKey("sphinx", EPlayerColor.GREY) to Texture(Gdx.files.internal("images/sphinx_grey.png")),
+            TextureKey("empty", EPlayerColor.RED) to Texture(Gdx.files.internal("images/empty_red.png")),
+            TextureKey("empty", EPlayerColor.GREY) to Texture(Gdx.files.internal("images/empty_grey.png"))
     )
 
-    fun getTexture(color: EPieceColor?, piece: Piece?): Texture? {
+    fun getTexture(color: EPlayerColor?, piece: Piece?): Texture? {
         return when {
             piece!=null -> {
                 when(piece){
@@ -48,4 +49,4 @@ class TextureManager{
         }
     }
 }
-data class TextureKey(val pieceType: String, val pieceColor: EPieceColor)
+data class TextureKey(val pieceType: String, val playerColor: EPlayerColor)

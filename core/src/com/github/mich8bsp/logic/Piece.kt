@@ -1,9 +1,7 @@
 package com.github.mich8bsp.logic
 
-import java.lang.Exception
-
 interface Piece {
-    val color: EPieceColor
+    val color: EPlayerColor
     var health: Int
     var direction: EDirection
     fun isDead(): Boolean = health <= 0
@@ -13,7 +11,7 @@ interface Piece {
     }
 }
 
-class PharaohPiece(override val color: EPieceColor, directionFront: EDirection = EDirection.UP) : Piece {
+class PharaohPiece(override val color: EPlayerColor, directionFront: EDirection = EDirection.UP) : Piece {
     override var health: Int = 1
     override var direction: EDirection = directionFront
 
@@ -23,7 +21,7 @@ class PharaohPiece(override val color: EPieceColor, directionFront: EDirection =
     }
 }
 
-class ScarabPiece(override val color: EPieceColor, directionRightEye: EDirection = EDirection.RIGHT) : Piece {
+class ScarabPiece(override val color: EPlayerColor, directionRightEye: EDirection = EDirection.RIGHT) : Piece {
     override var health: Int = 1
     override var direction: EDirection = directionRightEye
 
@@ -39,7 +37,7 @@ class ScarabPiece(override val color: EPieceColor, directionRightEye: EDirection
 
 }
 
-class PyramidPiece(override val color: EPieceColor, orientationRightReflection: EDirection) : Piece {
+class PyramidPiece(override val color: EPlayerColor, orientationRightReflection: EDirection) : Piece {
     override var health: Int = 1
 
     override var direction: EDirection = orientationRightReflection
@@ -62,7 +60,7 @@ class PyramidPiece(override val color: EPieceColor, orientationRightReflection: 
 
 }
 
-class AnubisPiece(override val color: EPieceColor, directionFront: EDirection = EDirection.UP) : Piece {
+class AnubisPiece(override val color: EPlayerColor, directionFront: EDirection = EDirection.UP) : Piece {
     override var health: Int = 1
     override var direction: EDirection = directionFront
 
@@ -74,7 +72,7 @@ class AnubisPiece(override val color: EPieceColor, directionFront: EDirection = 
     }
 }
 
-class SphinxPiece(override val color: EPieceColor, directionFace: EDirection = EDirection.UP) : Piece {
+class SphinxPiece(override val color: EPlayerColor, directionFace: EDirection = EDirection.UP) : Piece {
     override var health: Int = 1
     override var direction: EDirection = directionFace
     override fun hitWithRay(hitFromDirection: EDirection): EDirection? = null
@@ -95,10 +93,10 @@ class Mirror {
     }
 }
 
-enum class EPieceColor{
+enum class EPlayerColor{
     GREY, RED;
 
-    fun other(): EPieceColor =
+    fun other(): EPlayerColor =
         when(this){
             GREY -> RED
             RED -> GREY

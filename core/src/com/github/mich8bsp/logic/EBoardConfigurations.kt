@@ -3,8 +3,8 @@ package com.github.mich8bsp.logic
 import com.github.mich8bsp.logic.BoardConfigurationFactor.Companion.buildClassic
 
 enum class EBoardConfigurations(val configuration: Map<BoardPos, Piece>) {
-    CLASSIC_GREY(buildClassic(EPieceColor.GREY)),
-    CLASSIC_RED(buildClassic(EPieceColor.RED)),
+    CLASSIC_GREY(buildClassic(EPlayerColor.GREY)),
+    CLASSIC_RED(buildClassic(EPlayerColor.RED)),
     DYNASTY_GREY(mapOf()),
     DYNASTY_RED(mapOf()),
     IMHOTEP_GREY(mapOf()),
@@ -14,8 +14,8 @@ enum class EBoardConfigurations(val configuration: Map<BoardPos, Piece>) {
 
 class BoardConfigurationFactor{
     companion object{
-        fun buildClassic(playerColor: EPieceColor): Map<BoardPos, Piece> {
-            val opponentColor: EPieceColor = playerColor.other()
+        fun buildClassic(playerColor: EPlayerColor): Map<BoardPos, Piece> {
+            val opponentColor: EPlayerColor = playerColor.other()
             return mapOf(
                     BoardPos.get(0,2) to PyramidPiece(playerColor, EDirection.UP),
                     BoardPos.get(0,3) to AnubisPiece(playerColor),

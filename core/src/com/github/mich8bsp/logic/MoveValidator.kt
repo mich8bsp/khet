@@ -12,8 +12,8 @@ class MoveValidator(private val board: Board){
 
     private fun validatePositionMove(move: PositionMove): Boolean {
         val validRange = BoardPos.areNeighbors(move.from, move.to)
-        val sourceNotSphinx = board.getCell(move.from).piece !is SphinxPiece
-        val targetNotOccupied = board.getCell(move.to).isEmpty()
+        val sourceNotSphinx = board.getCell(move.from)?.piece !is SphinxPiece
+        val targetNotOccupied = board.getCell(move.to)?.isEmpty() ?: false
         return validRange && targetNotOccupied && sourceNotSphinx
     }
 
@@ -23,18 +23,19 @@ class MoveValidator(private val board: Board){
         val cell1 = board.getCell(move.pos1)
         val cell2 = board.getCell(move.pos2)
 
-        val switchingTwoPieces = cell1.piece!=null && cell2.piece!=null
-        val notSwitchingWithSphinx = cell1.piece !is SphinxPiece && cell2.piece !is SphinxPiece
+        val switchingTwoPieces = cell1?.piece!=null && cell2?.piece!=null
+        val notSwitchingWithSphinx = cell1?.piece !is SphinxPiece && cell2?.piece !is SphinxPiece
         return validRange && switchingTwoPieces && notSwitchingWithSphinx
     }
 
 
     private fun validateRotationMove(move: RotationMove): Boolean {
         val cell = board.getCell(move.pos)
-        if(cell.piece is SphinxPiece){
-            return when(cell.piece!!.direction){
+        if(cell?.piece is SphinxPiece){
+            return when(cell.piece?.direction){
                 EDirection.LEFT, EDirection.RIGHT -> move.direction == ERotationDirection.CLOCKWISE
                 EDirection.UP, EDirection.DOWN -> move.direction == ERotationDirection.COUNTER_CLOCKWISE
+                else -> false
             }
         }
         return true

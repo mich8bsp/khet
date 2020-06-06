@@ -3,6 +3,7 @@ package com.github.mich8bsp.screen
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -10,6 +11,7 @@ import com.badlogic.gdx.math.Vector3
 import com.github.mich8bsp.Game
 import com.github.mich8bsp.logic.*
 import ktx.app.KtxScreen
+import ktx.graphics.copy
 import ktx.graphics.use
 import ktx.log.logger
 
@@ -24,6 +26,7 @@ class GameScreen(private val game: Game) : KtxScreen {
     // create the touchPos to store mouse click position
     private val touchPos = Vector3()
     private val cellSize = 85
+    private val laserDurationInSec = 2f
 
     private val gameplayManager: GameplayManager = game.gameplayManager
 
@@ -34,10 +37,15 @@ class GameScreen(private val game: Game) : KtxScreen {
         // tell the SpriteBatch to render in the coordinate system specified by the camera.
         game.batch.projectionMatrix = camera.combined
 
+        game.batch.enableBlending()
         // begin a new batch and draw the bucket and all drops
         game.batch.use {
              gameplayManager.board.getCells().forEach { cell ->
                  renderCell(cell)
+                 if(cell.laser!=null){
+                     renderLaser(cell)
+                     cell.reduceLaserIntensity( delta * 100f/laserDurationInSec)
+                 }
              }
         }
 
@@ -48,7 +56,9 @@ class GameScreen(private val game: Game) : KtxScreen {
                     0f)
             camera.unproject(touchPos)
             val cellClicked = gameplayManager.board.getCell((touchPos.y / cellSize).toInt(), (touchPos.x / cellSize).toInt())
-            gameplayManager.onCellSelected(cellClicked)
+            if(cellClicked!=null){
+                gameplayManager.onCellSelected(cellClicked)
+            }
         }
 
 
@@ -75,6 +85,18 @@ class GameScreen(private val game: Game) : KtxScreen {
         val w = textureRegion.regionWidth.toFloat()
         val h = textureRegion.regionHeight.toFloat()
         game.batch.draw(textureRegion, cellX, cellY, w/2, h/2, w, h, 1f, 1f, rotationDegrees)
+    }
+
+    private fun renderLaser(cell: BoardCell){
+        val cellX: Float = cell.pos.j.toFloat() * cellSize
+        val cellY: Float = cell.pos.i.toFloat() * cellSize
+        val texture = textureManager.laserTexture
+        val textureRegion = TextureRegion(texture)
+        val laserIntensity: Float = cell.laser?.intensity ?: 0f
+        val preDrawColor = game.batch.color.copy()
+        game.batch.color = preDrawColor.copy(alpha = laserIntensity / 100f)
+        game.batch.draw(textureRegion, cellX, cellY)
+        game.batch.color = preDrawColor
     }
 
     override fun show() {

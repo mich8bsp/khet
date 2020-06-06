@@ -2,10 +2,10 @@ package com.github.mich8bsp.logic
 
 class GameplayManager {
 
-    private val playerColor: EPieceColor = EPieceColor.GREY
+    private val playerColor: EPlayerColor = EPlayerColor.GREY
     private val piecesConfiguration: Map<BoardPos, Piece> = when (playerColor) {
-        EPieceColor.GREY -> EBoardConfigurations.CLASSIC_GREY.configuration
-        EPieceColor.RED -> EBoardConfigurations.CLASSIC_RED.configuration
+        EPlayerColor.GREY -> EBoardConfigurations.CLASSIC_GREY.configuration
+        EPlayerColor.RED -> EBoardConfigurations.CLASSIC_RED.configuration
     }
 
     val board: Board = Board(8, 10, piecesConfiguration, playerColor)
@@ -33,6 +33,7 @@ class GameplayManager {
                 }
                 if (moveValidator.validateMove(move)) {
                     board.makeMove(move)
+                    onMoveFinished()
                 }else{
                     println("Invalid move")
                 }
@@ -48,11 +49,16 @@ class GameplayManager {
             val move = RotationMove(cellSelected!!.pos, direction)
             if(moveValidator.validateMove(move)){
                 board.makeMove(move)
-                cellSelected = null
+                onMoveFinished()
             }else{
                 println("Invalid move")
             }
         }
+    }
+
+    fun onMoveFinished() {
+        cellSelected = null
+        board.fireLaser(playerColor)
     }
 
 }
