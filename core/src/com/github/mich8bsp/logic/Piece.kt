@@ -78,15 +78,6 @@ class SphinxPiece(override val color: EPieceColor, directionFace: EDirection = E
     override var health: Int = 1
     override var direction: EDirection = directionFace
     override fun hitWithRay(hitFromDirection: EDirection): EDirection? = null
-
-    override fun rotate(rotationDir: ERotationDirection) {
-        val rotated = direction.rotate(rotationDir)
-        if(rotated == EDirection.DOWN || rotated == EDirection.RIGHT){
-            throw Exception("A Sphinx can't be rotated away from the board")
-        }
-        direction = rotated
-    }
-
 }
 
 class Mirror {

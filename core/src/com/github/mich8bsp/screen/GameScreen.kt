@@ -25,12 +25,7 @@ class GameScreen(private val game: Game) : KtxScreen {
     private val touchPos = Vector3()
     private val cellSize = 85
 
-    private val playerColor: EPieceColor = EPieceColor.GREY
-    private val piecesConfiguration: Map<BoardPos, Piece> = when(playerColor){
-        EPieceColor.GREY -> EBoardConfigurations.CLASSIC_GREY.configuration
-        EPieceColor.RED -> EBoardConfigurations.CLASSIC_RED.configuration
-    }
-    private val board: Board = Board(8, 10, piecesConfiguration, playerColor)
+    private val gameplayManager: GameplayManager = game.gameplayManager
 
     override fun render(delta: Float) {
         // generally good practice to update the camera's matrices once per frame
@@ -41,27 +36,27 @@ class GameScreen(private val game: Game) : KtxScreen {
 
         // begin a new batch and draw the bucket and all drops
         game.batch.use {
-             board.getCells().forEach { cell ->
+             gameplayManager.board.getCells().forEach { cell ->
                  renderCell(cell)
              }
         }
 
         // process user input
-        if (Gdx.input.isTouched) {
-//            touchPos.set(Gdx.input.x.toFloat(),
-//                    Gdx.input.y.toFloat(),
-//                    0f)
-//            camera.unproject(touchPos)
-//            bucket.x = touchPos.x - 64f / 2f
+        if (Gdx.input.justTouched()) {
+            touchPos.set(Gdx.input.x.toFloat(),
+                    Gdx.input.y.toFloat(),
+                    0f)
+            camera.unproject(touchPos)
+            val cellClicked = gameplayManager.board.getCell((touchPos.y / cellSize).toInt(), (touchPos.x / cellSize).toInt())
+            gameplayManager.onCellSelected(cellClicked)
         }
 
 
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            // getDeltaTime returns the time passed between the last and the current frame in seconds
-//            bucket.x -= 200 * delta
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+           gameplayManager.onRotate(ERotationDirection.COUNTER_CLOCKWISE)
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-//            bucket.x += 200 * delta
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+            gameplayManager.onRotate(ERotationDirection.CLOCKWISE)
         }
     }
 

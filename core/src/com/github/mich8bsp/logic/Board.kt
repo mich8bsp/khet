@@ -1,5 +1,7 @@
 package com.github.mich8bsp.logic
 
+import kotlin.math.abs
+
 class Board(rows: Int, cols: Int, piecesConfiguration: Map<BoardPos, Piece>, playerColor: EPieceColor){
     private val cells: Array<Array<BoardCell>> = Array(rows) { i -> Array(cols) { j ->
        BoardCell.create(BoardPos.get(i, j), piecesConfiguration[BoardPos.get(i, j)], rows, cols, playerColor)
@@ -29,6 +31,14 @@ class Board(rows: Int, cols: Int, piecesConfiguration: Map<BoardPos, Piece>, pla
 
     fun getCells(): List<BoardCell> {
         return cells.flatten()
+    }
+
+    fun getCell(x: Int, y: Int): BoardCell {
+        return cells[x][y]
+    }
+
+    fun getCell(pos: BoardPos): BoardCell {
+        return getCell(pos.i, pos.j)
     }
 }
 
@@ -75,5 +85,10 @@ class BoardCell(val pos: BoardPos, val cellColor: EPieceColor?){
 data class BoardPos(val i: Int, val j: Int){
     companion object {
         fun get(i: Int, j: Int): BoardPos = BoardPos(i, j) //object pooling would be a good idea here
+        fun areNeighbors(pos1: BoardPos, pos2: BoardPos): Boolean {
+            val diffX = abs(pos1.i - pos2.i)
+            val diffY = abs(pos1.j - pos2.j)
+            return (diffX + diffY > 0) && diffX<=1 && diffY<=1
+        }
     }
 }
