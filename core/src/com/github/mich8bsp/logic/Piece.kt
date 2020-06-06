@@ -3,53 +3,56 @@ package com.github.mich8bsp.logic
 import java.lang.Exception
 
 interface Piece {
+    val color: EPieceColor
     var health: Int
+    var direction: EDirection
     fun isDead(): Boolean = health <= 0
     fun hitWithRay(hitFromDirection: EDirection): EDirection?
-    fun rotate(rotationDir: ERotationDirection)
+    fun rotate(rotationDir: ERotationDirection) {
+        direction = direction.rotate(rotationDir)
+    }
 }
 
-class PharaohPiece : Piece {
+class PharaohPiece(override val color: EPieceColor, directionFront: EDirection = EDirection.UP) : Piece {
     override var health: Int = 1
-    var directionFront: EDirection = EDirection.UP
+    override var direction: EDirection = directionFront
 
     override fun hitWithRay(hitFromDirection: EDirection): EDirection? {
         health--
         return null
     }
-
-    override fun rotate(rotationDir: ERotationDirection) {
-        directionFront = directionFront.rotate(rotationDir)
-    }
 }
 
-class ScarabPiece : Piece {
+class ScarabPiece(override val color: EPieceColor, directionRightEye: EDirection = EDirection.RIGHT) : Piece {
     override var health: Int = 1
-    var orientationLR: Boolean = false
-
-    override fun hitWithRay(hitFromDirection: EDirection): EDirection? =
-        Mirror.reflect(hitFromDirection, orientationLR)
-
-
-    override fun rotate(rotationDir: ERotationDirection) {
-        orientationLR = !orientationLR
-    }
-}
-
-class PyramidPiece : Piece {
-    override var health: Int = 1
-
-    var orientationRightReflection: EDirection = EDirection.RIGHT
+    override var direction: EDirection = directionRightEye
 
     override fun hitWithRay(hitFromDirection: EDirection): EDirection? {
-        val orientationLR: Boolean = when(orientationRightReflection){
+        val orientationLR: Boolean = when(direction){
+            EDirection.UP -> true
+            EDirection.RIGHT -> false
+            EDirection.DOWN -> true
+            EDirection.LEFT -> false
+        }
+        return Mirror.reflect(hitFromDirection, orientationLR)
+    }
+
+}
+
+class PyramidPiece(override val color: EPieceColor, orientationRightReflection: EDirection) : Piece {
+    override var health: Int = 1
+
+    override var direction: EDirection = orientationRightReflection
+
+    override fun hitWithRay(hitFromDirection: EDirection): EDirection? {
+        val orientationLR: Boolean = when(direction){
             EDirection.UP -> false
             EDirection.RIGHT -> true
             EDirection.LEFT -> true
             EDirection.DOWN -> false
         }
         val reflected: EDirection = Mirror.reflect(hitFromDirection, orientationLR)
-        if(hitFromDirection == orientationRightReflection || reflected == orientationRightReflection){
+        if(hitFromDirection == direction || reflected == direction){
             return reflected
         }else{
             health--
@@ -57,41 +60,31 @@ class PyramidPiece : Piece {
         }
     }
 
-    override fun rotate(rotationDir: ERotationDirection) {
-        orientationRightReflection = orientationRightReflection.rotate(rotationDir)
-    }
-
 }
 
-class AnubisPiece : Piece {
+class AnubisPiece(override val color: EPieceColor, directionFront: EDirection = EDirection.UP) : Piece {
     override var health: Int = 1
-    var directionFront: EDirection = EDirection.UP
+    override var direction: EDirection = directionFront
 
     override fun hitWithRay(hitFromDirection: EDirection): EDirection? {
-        if(hitFromDirection == directionFront){
+        if(hitFromDirection == direction){
             health--
         }
         return null;
     }
-
-    override fun rotate(rotationDir: ERotationDirection) {
-        directionFront = directionFront.rotate(rotationDir)
-    }
-
 }
 
-class SphinxPiece : Piece {
-    var facingDirection: EDirection = EDirection.UP
-
+class SphinxPiece(override val color: EPieceColor, directionFace: EDirection = EDirection.UP) : Piece {
     override var health: Int = 1
+    override var direction: EDirection = directionFace
     override fun hitWithRay(hitFromDirection: EDirection): EDirection? = null
 
     override fun rotate(rotationDir: ERotationDirection) {
-        val rotated = facingDirection.rotate(rotationDir)
+        val rotated = direction.rotate(rotationDir)
         if(rotated == EDirection.DOWN || rotated == EDirection.RIGHT){
             throw Exception("A Sphinx can't be rotated away from the board")
         }
-        facingDirection = rotated
+        direction = rotated
     }
 
 }
@@ -109,4 +102,15 @@ class Mirror {
         }
 
     }
+}
+
+enum class EPieceColor{
+    GREY, RED;
+
+    fun other(): EPieceColor =
+        when(this){
+            GREY -> RED
+            RED -> GREY
+        }
+
 }

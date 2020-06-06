@@ -1,25 +1,25 @@
 package com.github.mich8bsp.logic
 
-class Board(rows: Int, cols: Int, piecesConfiguration: Map<BoardPos, Piece>){
-    val board: Array<Array<BoardCell>> = Array(rows) { i -> Array(cols) { j ->
-       BoardCell.create(BoardPos.get(i, j), piecesConfiguration[BoardPos.get(i, j)])
+class Board(rows: Int, cols: Int, piecesConfiguration: Map<BoardPos, Piece>, playerColor: EPieceColor){
+    private val cells: Array<Array<BoardCell>> = Array(rows) { i -> Array(cols) { j ->
+       BoardCell.create(BoardPos.get(i, j), piecesConfiguration[BoardPos.get(i, j)], rows, cols, playerColor)
     } }
 
     fun makeMove(move: Move) {
         when(move){
             is RotationMove -> {
-                val cell: BoardCell = board[move.pos.i][move.pos.j]
+                val cell: BoardCell = cells[move.pos.i][move.pos.j]
                 cell.piece?.rotate(move.direction)
             }
             is PositionMove -> {
-                val fromCell: BoardCell = board[move.from.i][move.from.j]
-                val toCell: BoardCell = board[move.to.i][move.to.j]
+                val fromCell: BoardCell = cells[move.from.i][move.from.j]
+                val toCell: BoardCell = cells[move.to.i][move.to.j]
                 toCell.piece = fromCell.piece
                 fromCell.piece = null
             }
             is SwitchMove -> {
-                val cell1: BoardCell = board[move.pos1.i][move.pos1.j]
-                val cell2: BoardCell = board[move.pos2.i][move.pos2.j]
+                val cell1: BoardCell = cells[move.pos1.i][move.pos1.j]
+                val cell2: BoardCell = cells[move.pos2.i][move.pos2.j]
                 val tmp: Piece? = cell1.piece
                 cell1.piece = cell2.piece
                 cell2.piece = tmp
@@ -27,9 +27,12 @@ class Board(rows: Int, cols: Int, piecesConfiguration: Map<BoardPos, Piece>){
         }
     }
 
+    fun getCells(): List<BoardCell> {
+        return cells.flatten()
+    }
 }
 
-class BoardCell(val pos: BoardPos){
+class BoardCell(val pos: BoardPos, val cellColor: EPieceColor?){
     var piece: Piece? = null
 
     fun isEmpty(): Boolean {
@@ -37,8 +40,30 @@ class BoardCell(val pos: BoardPos){
     }
 
     companion object {
-        fun create(pos: BoardPos, piece: Piece?): BoardCell {
-            val cell = BoardCell(pos)
+        private fun getEmptyCellColor(pos: BoardPos, boardRows: Int, boardCols: Int, playerColor: EPieceColor): EPieceColor? {
+            if(pos.j == boardCols-1){
+                return playerColor
+            }
+            if(pos.j == 0){
+                return playerColor.other()
+            }
+            if(pos.j == 1 && (pos.i == 0 || pos.i == boardRows-1)){
+                return playerColor
+            }
+            if(pos.j == boardCols-2 && (pos.i == 0 || pos.i == boardRows-1)){
+                return playerColor.other()
+            }
+            return null;
+        }
+
+        fun create(pos: BoardPos, piece: Piece?, boardRows: Int, boardCols: Int, playerColor: EPieceColor): BoardCell {
+            val cellColor: EPieceColor? = if(piece==null){
+               getEmptyCellColor(pos, boardRows, boardCols, playerColor)
+            }else{
+                null
+            }
+
+            val cell = BoardCell(pos, cellColor)
             if(piece!=null){
                 cell.piece = piece
             }
