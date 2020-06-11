@@ -116,9 +116,18 @@ class Board(val rows: Int, val cols: Int, piecesConfiguration: Map<BoardPos, Pie
 class BoardCell(val pos: BoardPos, val cellColor: EPlayerColor?){
     var piece: Piece? = null
     var laser: Laser? = null
+    var selected: Boolean = false
 
     fun isEmpty(): Boolean {
         return piece == null
+    }
+
+    fun select() {
+        selected = true
+    }
+
+    fun deselect(){
+        selected = false
     }
 
     fun activateLaser() {

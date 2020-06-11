@@ -86,6 +86,15 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
         val w = textureRegion.regionWidth.toFloat()
         val h = textureRegion.regionHeight.toFloat()
         game.batch.draw(textureRegion, cellX, cellY, w/2, h/2, w, h, 1f, 1f, rotationDegrees)
+
+        if(cell.selected){
+            val selectTexture = textureManager.selectedTexture
+            val selectTextureRegion = TextureRegion(selectTexture)
+            val preDrawColor = game.batch.color.copy()
+            game.batch.color = preDrawColor.copy(alpha = 0.5f)
+            game.batch.draw(selectTextureRegion, cellX, cellY)
+            game.batch.color = preDrawColor
+        }
     }
 
     private fun renderLaser(cell: BoardCell){

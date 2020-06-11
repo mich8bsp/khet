@@ -64,10 +64,12 @@ class GameplayManager(val player: Player) {
         }
         cellSelected = when (cellSelected) {
             cell -> {
+                cell.deselect()
                 null
             }
             null -> {
                 if (cell.piece != null && cell.piece?.color == playerColor) {
+                    cell.select()
                     cell
                 } else {
                     null
@@ -86,6 +88,7 @@ class GameplayManager(val player: Player) {
                 } else {
                     println("Invalid move")
                 }
+                cell.deselect()
                 null
             }
         }
@@ -106,11 +109,12 @@ class GameplayManager(val player: Player) {
             } else {
                 println("Invalid move")
             }
+            cellSelected?.deselect()
         }
     }
 
     fun onMoveFinished(moveOfPlayer: EPlayerColor) {
-        cellSelected = null
+//        cellSelected = null
         board.fireLaser(moveOfPlayer)
         if (board.isPharaohDead()) {
             val winner = board.getWinner()

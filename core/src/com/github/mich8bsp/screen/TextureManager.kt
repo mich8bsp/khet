@@ -7,6 +7,7 @@ import com.github.mich8bsp.logic.*
 class TextureManager{
     private val emptyCellTexture: Texture = Texture(Gdx.files.internal("images/empty.png"))
     val laserTexture: Texture = Texture(Gdx.files.internal("images/laser.png"))
+    val selectedTexture: Texture = Texture(Gdx.files.internal("images/selected.png"))
     private val texturesRepo: Map<TextureKey, Texture> = mapOf(
             TextureKey("anubis", EPlayerColor.RED) to Texture(Gdx.files.internal("images/anubis_red.png")),
             TextureKey("anubis", EPlayerColor.GREY) to Texture(Gdx.files.internal("images/anubis_grey.png")),
