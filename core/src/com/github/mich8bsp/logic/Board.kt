@@ -162,11 +162,7 @@ class BoardCell(val pos: BoardPos, val cellColor: EPlayerColor?){
         }
 
         fun create(pos: BoardPos, piece: Piece?, boardRows: Int, boardCols: Int, playerColor: EPlayerColor): BoardCell {
-            val cellColor: EPlayerColor? = if(piece==null){
-               getEmptyCellColor(pos, boardRows, boardCols, playerColor)
-            }else{
-                null
-            }
+            val cellColor: EPlayerColor? = getEmptyCellColor(pos, boardRows, boardCols, playerColor)
 
             val cell = BoardCell(pos, cellColor)
             if(piece!=null){
