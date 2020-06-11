@@ -67,6 +67,8 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
         if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
             gameplayManager.onRotate(ERotationDirection.CLOCKWISE)
         }
+
+        gameplayManager.playOutOpponentMove()
     }
 
     private fun renderCell(cell: BoardCell){

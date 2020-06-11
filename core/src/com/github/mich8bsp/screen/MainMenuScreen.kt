@@ -32,7 +32,7 @@ class MainMenuScreen(private val game: Game) : KtxScreen {
         }
 
         if(player!=null){
-            game.addScreen(GameScreen(game, GameplayManager(player!!)))
+            game.addScreen(GameScreen(game, GameplayManager(player!!).connect()))
             game.setScreen<GameScreen>();
             game.removeScreen<MainMenuScreen>()
             dispose();

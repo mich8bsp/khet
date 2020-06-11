@@ -1,7 +1,22 @@
 package com.github.mich8bsp.logic
 
-interface Move
+interface Move{
+    fun getMoveType(): EMoveType
+}
 
-data class RotationMove(val pos: BoardPos, val direction: ERotationDirection) : Move
-data class PositionMove(val from: BoardPos, val to: BoardPos): Move
-data class SwitchMove(val pos1: BoardPos, val pos2: BoardPos): Move
+data class RotationMove(val pos: BoardPos, val direction: ERotationDirection) : Move {
+    override fun getMoveType(): EMoveType = EMoveType.ROTATE
+}
+
+data class PositionMove(val from: BoardPos, val to: BoardPos): Move {
+    override fun getMoveType(): EMoveType = EMoveType.POSITION
+}
+data class SwitchMove(val pos1: BoardPos, val pos2: BoardPos): Move {
+    override fun getMoveType(): EMoveType = EMoveType.SWITCH
+}
+
+data class MoveRecord<T : Move>(val move: T, val playerColor: EPlayerColor, val moveId: Long)
+
+enum class EMoveType{
+    ROTATE, POSITION, SWITCH, NONE
+}
