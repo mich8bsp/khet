@@ -26,7 +26,7 @@ object GameServerClient {
     }
 
     fun sendMove(move: Move, playerId: UUID) {
-        val body = objectMapper.writeValueAsString(MoveRequest(move, playerId))
+        val body = objectMapper.writeValueAsString(MoveRequest(move, playerId.toString()))
         GlobalScope.async {
             val path = when(move){
                 is RotationMove -> "make_rot_move"
@@ -60,5 +60,5 @@ object GameServerClient {
     }
 }
 
-data class MoveRequest(val move: Move, val playerId: UUID)
+data class MoveRequest(val move: Move, val playerId: String)
 data class MoveTypeResponse(val moveType: EMoveType)
