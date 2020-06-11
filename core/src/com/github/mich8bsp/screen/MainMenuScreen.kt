@@ -8,6 +8,7 @@ import com.github.mich8bsp.logic.GameplayManager
 import com.github.mich8bsp.logic.Player
 import com.github.mich8bsp.multiplayer.GameServerClient
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.ticker
 import ktx.app.KtxScreen
 import ktx.graphics.use
 import kotlinx.coroutines.launch
@@ -17,6 +18,20 @@ class MainMenuScreen(private val game: Game) : KtxScreen {
 
     var joinRequested: Boolean = false
     var player: Player? = null
+    var opponentReady: Boolean = false
+    val tickerChannel = ticker(delayMillis = 5_000, initialDelayMillis = 0)
+
+    fun checkOnOpponent() {
+        GlobalScope.launch {
+            for (event in tickerChannel) {
+                println("checking on opponent")
+                val isReady = GameServerClient.isGameRoomReady(player!!.playerId).await()
+                if (isReady) {
+                    opponentReady = true
+                }
+            }
+        }
+    }
 
     override fun render(delta: Float) {
         camera.update();
@@ -31,7 +46,8 @@ class MainMenuScreen(private val game: Game) : KtxScreen {
             }
         }
 
-        if(player!=null){
+        if(player!=null && opponentReady){
+            tickerChannel.cancel()
             game.addScreen(GameScreen(game, GameplayManager(player!!).connect()))
             game.setScreen<GameScreen>();
             game.removeScreen<MainMenuScreen>()
@@ -43,10 +59,10 @@ class MainMenuScreen(private val game: Game) : KtxScreen {
                 GlobalScope.launch {
                     val player = GameServerClient.joinGameAsync().await()
                     this@MainMenuScreen.player = player
+                    checkOnOpponent()
                 }
             }
             joinRequested = true
-
         }
     }
 }

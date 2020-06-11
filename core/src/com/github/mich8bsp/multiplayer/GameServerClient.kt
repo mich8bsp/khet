@@ -64,6 +64,14 @@ object GameServerClient {
         }
     }
 
+    fun isGameRoomReady(playerId: UUID): Deferred<Boolean> {
+        return GlobalScope.async {
+            val response = getRequest("/game/is_room_ready?player_id=$playerId")
+            val isReady = objectMapper.readValue<Boolean>(response)
+            isReady
+        }
+    }
+
     private suspend fun postRequest(url: String, body: Any = EmptyContent): String {
         println("sending POST request $body to $url")
         return client.post<String>(scheme = scheme, host = serverURL, port = port, path = url, body = body)
