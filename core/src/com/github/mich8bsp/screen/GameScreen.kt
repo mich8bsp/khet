@@ -1,15 +1,16 @@
 package com.github.mich8bsp.screen
 
-
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.math.Vector3
 import com.github.mich8bsp.Game
-import com.github.mich8bsp.logic.*
+import com.github.mich8bsp.logic.BoardCell
+import com.github.mich8bsp.logic.EDirection
+import com.github.mich8bsp.logic.ERotationDirection
+import com.github.mich8bsp.logic.GameplayManager
 import ktx.app.KtxScreen
 import ktx.graphics.copy
 import ktx.graphics.use
@@ -17,7 +18,7 @@ import ktx.log.logger
 
 private val log = logger<GameScreen>()
 
-class GameScreen(private val game: Game) : KtxScreen {
+class GameScreen(private val game: Game, private val gameplayManager: GameplayManager) : KtxScreen {
 
     private val textureManager = TextureManager()
     // The camera ensures we can render using our target resolution of 800x480
@@ -27,8 +28,6 @@ class GameScreen(private val game: Game) : KtxScreen {
     private val touchPos = Vector3()
     private val cellSize = 85
     private val laserDurationInSec = 2f
-
-    private val gameplayManager: GameplayManager = game.gameplayManager
 
     override fun render(delta: Float) {
         // generally good practice to update the camera's matrices once per frame

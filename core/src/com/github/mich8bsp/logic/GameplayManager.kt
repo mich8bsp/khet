@@ -1,9 +1,9 @@
 package com.github.mich8bsp.logic
 
-class GameplayManager {
+class GameplayManager(val player: Player) {
 
     private var gameOver: Boolean = false
-    private val playerColor: EPlayerColor = EPlayerColor.GREY
+    private val playerColor: EPlayerColor = player.color
     private val piecesConfiguration: Map<BoardPos, Piece> = when (playerColor) {
         EPlayerColor.GREY -> EBoardConfigurations.CLASSIC_GREY.configuration
         EPlayerColor.RED -> EBoardConfigurations.CLASSIC_RED.configuration

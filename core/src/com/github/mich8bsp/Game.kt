@@ -10,7 +10,6 @@ import ktx.app.KtxScreen
 class Game : KtxGame<KtxScreen>() {
     val batch by lazy { SpriteBatch() }
     val font by lazy { BitmapFont() }
-    val gameplayManager = GameplayManager()
 
     override fun create() {
         addScreen(MainMenuScreen(this))
