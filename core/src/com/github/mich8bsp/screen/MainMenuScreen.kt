@@ -7,8 +7,10 @@ import com.github.mich8bsp.Game
 import com.github.mich8bsp.logic.GameplayManager
 import com.github.mich8bsp.logic.Player
 import com.github.mich8bsp.multiplayer.GameServerClient
+import kotlinx.coroutines.GlobalScope
 import ktx.app.KtxScreen
 import ktx.graphics.use
+import kotlinx.coroutines.launch
 
 class MainMenuScreen(private val game: Game) : KtxScreen {
     private val camera: OrthographicCamera = OrthographicCamera().apply { setToOrtho(false, 800f, 400f) }
@@ -38,10 +40,10 @@ class MainMenuScreen(private val game: Game) : KtxScreen {
 
         if (Gdx.input.justTouched()) {
             if (!joinRequested) {
-                GameServerClient.joinGame()
-                        .thenAccept { player ->
-                            this.player = player
-                        }
+                GlobalScope.launch {
+                    val player = GameServerClient.joinGameAsync().await()
+                    this@MainMenuScreen.player = player
+                }
             }
             joinRequested = true
 

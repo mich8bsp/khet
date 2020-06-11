@@ -1,18 +1,29 @@
 package com.github.mich8bsp.multiplayer
 
-import com.github.mich8bsp.logic.EPlayerColor
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.mich8bsp.logic.Player
-import java.util.*
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
-import java.util.function.Supplier
-
+import io.ktor.client.HttpClient
+import io.ktor.client.request.post
+import io.ktor.client.utils.EmptyContent
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 
 object GameServerClient {
-    fun joinGame(): CompletableFuture<Player> {
-        //TODO: connect to server
-        return CompletableFuture.supplyAsync(Supplier{
-            Player(UUID.randomUUID(), UUID.randomUUID(), EPlayerColor.GREY)
-        },  Executors.newCachedThreadPool())
+    private val client = HttpClient()
+    private const val serverURL = "floating-temple-17106.herokuapp.com"
+    private val objectMapper = jacksonObjectMapper()
+            .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+
+    fun joinGameAsync(): Deferred<Player> {
+        return GlobalScope.async {
+            objectMapper.readValue<Player>(postRequest("/game/join"))
+        }
+    }
+
+    private suspend fun postRequest(url: String, body: Any = EmptyContent): String {
+        return client.post<String>(scheme = "https", host = serverURL, path = url, body = body)
     }
 }
