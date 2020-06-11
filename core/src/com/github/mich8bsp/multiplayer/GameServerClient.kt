@@ -1,6 +1,6 @@
 package com.github.mich8bsp.multiplayer
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.mich8bsp.logic.*
@@ -8,6 +8,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.utils.EmptyContent
+import io.ktor.content.TextContent
+import io.ktor.http.ContentType
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -15,9 +17,17 @@ import java.util.*
 
 object GameServerClient {
     private val client = HttpClient()
-    private const val serverURL = "floating-temple-17106.herokuapp.com"
-    private val objectMapper = jacksonObjectMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+    val isLocal = false
+    private val scheme = if(isLocal) "http" else "https"
+    private val serverURL = if(isLocal) "localhost" else "floating-temple-17106.herokuapp.com"
+    private val port = if(isLocal) 9992 else io.ktor.http.DEFAULT_PORT
+    private val objectMapper: ObjectMapper = createObjMapper()
+
+    private fun createObjMapper(): ObjectMapper {
+        val mapper = jacksonObjectMapper()
+                .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+        return mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    }
 
     fun joinGameAsync(): Deferred<Player> {
         return GlobalScope.async {
@@ -26,15 +36,15 @@ object GameServerClient {
     }
 
     fun sendMove(move: Move, playerId: UUID) {
-        val body = objectMapper.writeValueAsString(MoveRequest(move, playerId.toString()))
         GlobalScope.async {
+            val body = objectMapper.writeValueAsString(MoveRequest(move, playerId.toString()))
             val path = when(move){
                 is RotationMove -> "make_rot_move"
                 is PositionMove -> "make_pos_move"
                 is SwitchMove -> "make_switch_move"
                 else -> throw Exception("unrecognized move type $move")
             }
-            postRequest("/game/$path", body)
+            postRequest("/game/$path", TextContent(body, contentType = ContentType.Application.Json))
         }
     }
 
@@ -44,21 +54,27 @@ object GameServerClient {
             val responseAsTypedMove = objectMapper.readValue<MoveTypeResponse>(response)
             when(responseAsTypedMove.moveType){
                 EMoveType.NONE -> null
-                EMoveType.POSITION -> objectMapper.readValue<MoveRecord<PositionMove>>(response)
-                EMoveType.ROTATE -> objectMapper.readValue<MoveRecord<RotationMove>>(response)
-                EMoveType.SWITCH -> objectMapper.readValue<MoveRecord<SwitchMove>>(response)
+                EMoveType.POSITION -> objectMapper.readValue<MoveFullResponse<PositionMove>>(response)
+                        .move
+                EMoveType.ROTATE -> objectMapper.readValue<MoveFullResponse<RotationMove>>(response)
+                        .move
+                EMoveType.SWITCH -> objectMapper.readValue<MoveFullResponse<SwitchMove>>(response)
+                        .move
             }
         }
     }
 
     private suspend fun postRequest(url: String, body: Any = EmptyContent): String {
-        return client.post<String>(scheme = "https", host = serverURL, path = url, body = body)
+        println("sending POST request $body to $url")
+        return client.post<String>(scheme = scheme, host = serverURL, port = port, path = url, body = body)
     }
 
     private suspend fun getRequest(url: String): String {
-        return client.get<String>(scheme = "https", host = serverURL, path = url)
+        println("sending GET request to $url")
+        return client.get<String>(scheme = scheme, host = serverURL, port = port, path = url)
     }
 }
 
 data class MoveRequest(val move: Move, val playerId: String)
 data class MoveTypeResponse(val moveType: EMoveType)
+data class MoveFullResponse<T: Move>(val move: MoveRecord<T>, val moveType: EMoveType)

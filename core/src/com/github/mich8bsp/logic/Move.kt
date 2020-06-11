@@ -15,8 +15,4 @@ data class SwitchMove(val pos1: BoardPos, val pos2: BoardPos): Move {
     override fun getMoveType(): EMoveType = EMoveType.SWITCH
 }
 
-data class MoveRecord<T : Move>(val move: T, val playerColor: EPlayerColor, val moveId: Long)
-
-enum class EMoveType{
-    ROTATE, POSITION, SWITCH, NONE
-}
+data class MoveRecord<T : Move>(val move: T, val playerColor: EPlayerColor, val recordId: Long)

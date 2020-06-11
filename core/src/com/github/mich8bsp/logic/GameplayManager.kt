@@ -34,7 +34,7 @@ class GameplayManager(val player: Player) {
                 val latestMoveRecord = GameServerClient.getLatestMove(player.playerId).await()
                 if (latestMoveRecord != null) {
                     synchronized(latestMoveLock){
-                        val isNewMove: Boolean = latestMoveFromServer == null || latestMoveFromServer!!.moveId < latestMoveRecord.moveId
+                        val isNewMove: Boolean = latestMoveFromServer == null || latestMoveFromServer!!.recordId < latestMoveRecord.recordId
                         if (isNewMove) {
                             latestMoveFromServer = latestMoveRecord
                         }
@@ -48,11 +48,11 @@ class GameplayManager(val player: Player) {
     fun playOutOpponentMove() {
         synchronized(latestMoveLock) {
             val isOpponentMove: Boolean = latestMoveFromServer?.playerColor == playerColor.other()
-            val isNewMove: Boolean = latestMoveFromServer != null && latestMoveFromServer!!.moveId > lastMovePlayedOutId
+            val isNewMove: Boolean = latestMoveFromServer != null && latestMoveFromServer!!.recordId > lastMovePlayedOutId
             val shouldPlayMove: Boolean = isOpponentMove && isNewMove
             if (shouldPlayMove) {
                 board.makeMove(latestMoveFromServer!!.move)
-                lastMovePlayedOutId = latestMoveFromServer!!.moveId
+                lastMovePlayedOutId = latestMoveFromServer!!.recordId
                 onMoveFinished(latestMoveFromServer!!.playerColor)
             }
         }
@@ -111,7 +111,7 @@ class GameplayManager(val player: Player) {
 
     fun onMoveFinished(moveOfPlayer: EPlayerColor) {
         cellSelected = null
-        board.fireLaser(playerColor)
+        board.fireLaser(moveOfPlayer)
         if (board.isPharaohDead()) {
             val winner = board.getWinner()
             println("Game Over! $winner won!")
