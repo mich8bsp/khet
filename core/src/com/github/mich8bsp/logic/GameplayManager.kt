@@ -88,7 +88,7 @@ class GameplayManager(val player: Player) {
                 } else {
                     println("Invalid move")
                 }
-                cell.deselect()
+                cellSelected!!.deselect()
                 null
             }
         }
@@ -110,11 +110,11 @@ class GameplayManager(val player: Player) {
                 println("Invalid move")
             }
             cellSelected?.deselect()
+            cellSelected = null
         }
     }
 
     fun onMoveFinished(moveOfPlayer: EPlayerColor) {
-//        cellSelected = null
         board.fireLaser(moveOfPlayer)
         if (board.isPharaohDead()) {
             val winner = board.getWinner()
@@ -122,6 +122,22 @@ class GameplayManager(val player: Player) {
             gameOver = true
         }
         currPlayerToMove = moveOfPlayer.other()
+    }
+
+    fun isPlayerTurn(): Boolean {
+        return currPlayerToMove == playerColor
+    }
+
+    fun isGameOver(): Boolean {
+        return gameOver
+    }
+
+    fun isWinner(): Boolean {
+        return if(!isGameOver()){
+            false
+        }else{
+            board.getWinner() == playerColor
+        }
     }
 
 }

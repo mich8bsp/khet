@@ -21,9 +21,9 @@ private val log = logger<GameScreen>()
 class GameScreen(private val game: Game, private val gameplayManager: GameplayManager) : KtxScreen {
 
     private val textureManager = TextureManager()
-    // The camera ensures we can render using our target resolution of 800x480
+    // The camera ensures we can render using our target resolution
     //    pixels no matter what the screen resolution is.
-    private val camera = OrthographicCamera().apply { setToOrtho(false, 850f, 680f) }
+    private val camera = OrthographicCamera().apply { setToOrtho(false, ScreenConfig.viewportWidth, ScreenConfig.viewportHeight) }
     // create the touchPos to store mouse click position
     private val touchPos = Vector3()
     private val cellSize = 85
@@ -37,7 +37,6 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
         game.batch.projectionMatrix = camera.combined
 
         game.batch.enableBlending()
-        // begin a new batch and draw the bucket and all drops
         game.batch.use {
              gameplayManager.board.getCells().forEach { cell ->
                  renderCell(cell)
@@ -46,6 +45,16 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
                      cell.reduceLaserIntensity( delta * 100f/laserDurationInSec)
                  }
              }
+
+            val isPlayerTurn = gameplayManager.isPlayerTurn()
+            val isGameOver = gameplayManager.isGameOver()
+            if(isGameOver){
+                val isWinner = gameplayManager.isWinner()
+                game.font.draw(game.batch, "Game Over. ${if(isWinner) "You won!" else "You lost..."}", 100f, ScreenConfig.viewportHeight - 50f)
+            }else {
+                game.font.draw(game.batch, "It's ${if(isPlayerTurn) "your" else "your opponent's"} turn", 100f, ScreenConfig.viewportHeight - 50f)
+            }
+
         }
 
         // process user input
