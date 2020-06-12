@@ -11,7 +11,7 @@ class GameplayManager(private val player: Player) {
     private val playerColor: EPlayerColor = player.color
     private var currPlayerToMove: EPlayerColor = EPlayerColor.GREY
 
-    val board: Board = Board(8, 10, playerColor)
+    val board: Board = Board(playerColor)
     private val moveValidator = MoveValidator(board)
     private val latestMoveLock = Object()
     private var lastMoveRecordCache: MoveRecord<out Move>? = null
