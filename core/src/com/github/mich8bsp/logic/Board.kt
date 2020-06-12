@@ -2,7 +2,12 @@ package com.github.mich8bsp.logic
 
 import kotlin.math.abs
 
-class Board(val rows: Int, val cols: Int, piecesConfiguration: Map<BoardPos, Piece>, playerColor: EPlayerColor){
+class Board(private val rows: Int, private val cols: Int, playerColor: EPlayerColor){
+
+    private val piecesConfiguration: Map<BoardPos, Piece> = when (playerColor) {
+        EPlayerColor.GREY -> EBoardConfigurations.CLASSIC_GREY.configuration
+        EPlayerColor.RED -> EBoardConfigurations.CLASSIC_RED.configuration
+    }
 
     private val pharaohHealth: MutableMap<EPlayerColor, Boolean> = mutableMapOf(
             EPlayerColor.GREY to true,

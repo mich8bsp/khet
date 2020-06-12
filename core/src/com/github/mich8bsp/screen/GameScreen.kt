@@ -32,31 +32,11 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
     override fun render(delta: Float) {
         // generally good practice to update the camera's matrices once per frame
         camera.update()
+        updateGame()
+        renderGame(delta)
+    }
 
-        // tell the SpriteBatch to render in the coordinate system specified by the camera.
-        game.batch.projectionMatrix = camera.combined
-
-        game.batch.enableBlending()
-        game.batch.use {
-             gameplayManager.board.getCells().forEach { cell ->
-                 renderCell(cell)
-                 if(cell.laser!=null){
-                     renderLaser(cell)
-                     cell.reduceLaserIntensity( delta * 100f/laserDurationInSec)
-                 }
-             }
-
-            val isPlayerTurn = gameplayManager.isPlayerTurn()
-            val isGameOver = gameplayManager.isGameOver()
-            if(isGameOver){
-                val isWinner = gameplayManager.isWinner()
-                game.font.draw(game.batch, "Game Over. ${if(isWinner) "You won!" else "You lost..."}", 100f, ScreenConfig.viewportHeight - 50f)
-            }else {
-                game.font.draw(game.batch, "It's ${if(isPlayerTurn) "your" else "your opponent's"} turn", 100f, ScreenConfig.viewportHeight - 50f)
-            }
-
-        }
-
+    private fun updateGame(){
         // process user input
         if (Gdx.input.justTouched()) {
             touchPos.set(Gdx.input.x.toFloat(),
@@ -71,13 +51,39 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
 
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-           gameplayManager.onRotate(ERotationDirection.COUNTER_CLOCKWISE)
+            gameplayManager.onRotate(ERotationDirection.COUNTER_CLOCKWISE)
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
             gameplayManager.onRotate(ERotationDirection.CLOCKWISE)
         }
 
         gameplayManager.playOutOpponentMove()
+    }
+
+    private fun renderGame(delta: Float){
+        // tell the SpriteBatch to render in the coordinate system specified by the camera.
+        game.batch.projectionMatrix = camera.combined
+
+        game.batch.enableBlending()
+        game.batch.use {
+            gameplayManager.board.getCells().forEach { cell ->
+                renderCell(cell)
+                if(cell.laser!=null){
+                    renderLaser(cell)
+                    cell.reduceLaserIntensity( delta * 100f/laserDurationInSec)
+                }
+            }
+
+            val isPlayerTurn = gameplayManager.isPlayerTurn()
+            val isGameOver = gameplayManager.isGameOver()
+            if(isGameOver){
+                val isWinner = gameplayManager.isWinner()
+                game.font.draw(game.batch, "Game Over. ${if(isWinner) "You won!" else "You lost..."}", 100f, ScreenConfig.viewportHeight - 50f)
+            }else {
+                game.font.draw(game.batch, "It's ${if(isPlayerTurn) "your" else "your opponent's"} turn", 100f, ScreenConfig.viewportHeight - 50f)
+            }
+
+        }
     }
 
     private fun renderCell(cell: BoardCell){
@@ -123,15 +129,8 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
         game.batch.color = preDrawColor
     }
 
-    override fun show() {
-        // start the playback of the background music when the screen is shown
-//        rainMusic.play()
-    }
-
     override fun dispose() {
         log.debug { "Disposing ${this.javaClass.simpleName}" }
         textureManager.dispose()
-//        dropSound.dispose()
-//        rainMusic.dispose()
     }
 }

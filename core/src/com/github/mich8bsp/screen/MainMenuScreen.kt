@@ -14,17 +14,16 @@ import ktx.graphics.use
 import kotlinx.coroutines.launch
 
 class MainMenuScreen(private val game: Game) : KtxScreen {
-    private val camera: OrthographicCamera = OrthographicCamera().apply { setToOrtho(false, 800f, 400f) }
+    private val camera: OrthographicCamera = OrthographicCamera().apply { setToOrtho(false, ScreenConfig.viewportWidth, ScreenConfig.viewportHeight) }
 
     var joinRequested: Boolean = false
     var player: Player? = null
     var opponentReady: Boolean = false
-    val tickerChannel = ticker(delayMillis = 5_000, initialDelayMillis = 0)
+    private val tickerChannel = ticker(delayMillis = 5_000, initialDelayMillis = 0)
 
-    fun checkOnOpponent() {
+    private fun checkOnOpponent() {
         GlobalScope.launch {
             for (event in tickerChannel) {
-                println("checking on opponent")
                 val isReady = GameServerClient.isGameRoomReady(player!!.playerId).await()
                 if (isReady) {
                     opponentReady = true
@@ -39,8 +38,8 @@ class MainMenuScreen(private val game: Game) : KtxScreen {
 
         game.batch.use {
             if (!joinRequested) {
-                game.font.draw(game.batch, "Welcome to Khet!!! ", 100f, 150f)
-                game.font.draw(game.batch, "Tap anywhere to begin!", 100f, 100f)
+                game.font.draw(game.batch, "Welcome to Khet!", 100f, 150f)
+                game.font.draw(game.batch, "Tap anywhere to begin", 100f, 100f)
             }else{
                 game.font.draw(game.batch, "Waiting for opponent to join...", 100f, 150f)
             }

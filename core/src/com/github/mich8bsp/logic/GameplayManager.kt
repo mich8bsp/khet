@@ -5,21 +5,16 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.launch
 
-class GameplayManager(val player: Player) {
+class GameplayManager(private val player: Player) {
 
     private var gameOver: Boolean = false
     private val playerColor: EPlayerColor = player.color
-    private val piecesConfiguration: Map<BoardPos, Piece> = when (playerColor) {
-        EPlayerColor.GREY -> EBoardConfigurations.CLASSIC_GREY.configuration
-        EPlayerColor.RED -> EBoardConfigurations.CLASSIC_RED.configuration
-    }
-
     private var currPlayerToMove: EPlayerColor = EPlayerColor.GREY
 
-    val board: Board = Board(8, 10, piecesConfiguration, playerColor)
+    val board: Board = Board(8, 10, playerColor)
     private val moveValidator = MoveValidator(board)
     private val latestMoveLock = Object()
-    private var latestMoveFromServer: MoveRecord<out Move>? = null
+    private var lastMoveRecordCache: MoveRecord<out Move>? = null
     private var lastMovePlayedOutId: Long = 0
 
 
@@ -30,13 +25,12 @@ class GameplayManager(val player: Player) {
 
         GlobalScope.launch {
             for (event in tickerChannel) {
-                println("checking latest move from server")
                 val latestMoveRecord = GameServerClient.getLatestMove(player.playerId).await()
                 if (latestMoveRecord != null) {
                     synchronized(latestMoveLock){
-                        val isNewMove: Boolean = latestMoveFromServer == null || latestMoveFromServer!!.recordId < latestMoveRecord.recordId
+                        val isNewMove: Boolean = lastMoveRecordCache == null || lastMoveRecordCache!!.recordId < latestMoveRecord.recordId
                         if (isNewMove) {
-                            latestMoveFromServer = latestMoveRecord
+                            lastMoveRecordCache = latestMoveRecord
                         }
                     }
                 }
@@ -47,13 +41,13 @@ class GameplayManager(val player: Player) {
 
     fun playOutOpponentMove() {
         synchronized(latestMoveLock) {
-            val isOpponentMove: Boolean = latestMoveFromServer?.playerColor == playerColor.other()
-            val isNewMove: Boolean = latestMoveFromServer != null && latestMoveFromServer!!.recordId > lastMovePlayedOutId
+            val isOpponentMove: Boolean = lastMoveRecordCache?.playerColor == playerColor.other()
+            val isNewMove: Boolean = lastMoveRecordCache != null && lastMoveRecordCache!!.recordId > lastMovePlayedOutId
             val shouldPlayMove: Boolean = isOpponentMove && isNewMove
             if (shouldPlayMove) {
-                board.makeMove(latestMoveFromServer!!.move)
-                lastMovePlayedOutId = latestMoveFromServer!!.recordId
-                onMoveFinished(latestMoveFromServer!!.playerColor)
+                board.makeMove(lastMoveRecordCache!!.move)
+                lastMovePlayedOutId = lastMoveRecordCache!!.recordId
+                onMoveFinished(lastMoveRecordCache!!.playerColor)
             }
         }
     }
