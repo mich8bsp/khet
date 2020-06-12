@@ -1,13 +1,19 @@
 package com.github.mich8bsp.screen
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.github.mich8bsp.logic.*
+import ktx.graphics.copy
+
 
 class TextureManager{
+    val cellSize: Int = 85
     private val emptyCellTexture: Texture = Texture(Gdx.files.internal("images/empty.png"))
-    val laserTexture: Texture = Texture(Gdx.files.internal("images/laser.png"))
-    val selectedTexture: Texture = Texture(Gdx.files.internal("images/selected.png"))
+    val laserTexture: Texture = createSingleColorTexture(cellSize, cellSize, Color.YELLOW)
+    val selectedTexture: Texture = createSingleColorTexture(cellSize, cellSize, Color.BROWN.copy(alpha = 0.5f))
+    val deathTexture: Texture = createSingleColorTexture(cellSize, cellSize, Color.ORANGE)
     private val texturesRepo: Map<TextureKey, Texture> = mapOf(
             TextureKey("anubis", EPlayerColor.RED) to Texture(Gdx.files.internal("images/anubis_red.png")),
             TextureKey("anubis", EPlayerColor.GREY) to Texture(Gdx.files.internal("images/anubis_grey.png")),
@@ -25,7 +31,7 @@ class TextureManager{
 
     fun getTexture(color: EPlayerColor?, piece: Piece?): Texture? {
         return when {
-            piece!=null -> {
+            piece!=null && !piece.isDead() -> {
                 when(piece){
                     is AnubisPiece -> texturesRepo[TextureKey("anubis", piece.color)]
                     is PharaohPiece -> texturesRepo[TextureKey("pharaoh", piece.color)]
@@ -42,6 +48,15 @@ class TextureManager{
                 emptyCellTexture
             }
         }
+    }
+
+    private fun createSingleColorTexture(width: Int, height: Int, color: Color): Texture {
+        val pixmap = Pixmap(width, height, Pixmap.Format.RGBA8888)
+        pixmap.setColor(color)
+        pixmap.fillRectangle(0, 0, width, height)
+        val texture = Texture(pixmap)
+        pixmap.dispose()
+        return texture
     }
 
     fun dispose() {

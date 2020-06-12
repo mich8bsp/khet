@@ -26,7 +26,7 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
     private val camera = OrthographicCamera().apply { setToOrtho(false, ScreenConfig.viewportWidth, ScreenConfig.viewportHeight) }
     // create the touchPos to store mouse click position
     private val touchPos = Vector3()
-    private val cellSize = 85
+    private val cellSize = textureManager.cellSize
     private val laserDurationInSec = 2f
 
     override fun render(delta: Float) {
@@ -84,12 +84,16 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
         val cellX: Float = cell.pos.j.toFloat() * cellSize
         val cellY: Float = cell.pos.i.toFloat() * cellSize
         val texture: Texture? = textureManager.getTexture(cell.cellColor, cell.piece)
-        val rotationDegrees: Float = when(cell.piece?.direction) {
-            EDirection.UP -> 0f
-            EDirection.RIGHT -> 270f
-            EDirection.DOWN -> 180f
-            EDirection.LEFT -> 90f
-            else -> 0f
+        val rotationDegrees: Float = if(cell.piece?.isDead() != true){
+            when(cell.piece?.direction) {
+                EDirection.UP -> 0f
+                EDirection.RIGHT -> 270f
+                EDirection.DOWN -> 180f
+                EDirection.LEFT -> 90f
+                else -> 0f
+            }
+        }else{
+            0f
         }
         val textureRegion = TextureRegion(texture)
         val w = textureRegion.regionWidth.toFloat()
@@ -99,10 +103,7 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
         if(cell.selected){
             val selectTexture = textureManager.selectedTexture
             val selectTextureRegion = TextureRegion(selectTexture)
-            val preDrawColor = game.batch.color.copy()
-            game.batch.color = preDrawColor.copy(alpha = 0.5f)
             game.batch.draw(selectTextureRegion, cellX, cellY)
-            game.batch.color = preDrawColor
         }
     }
 
@@ -112,9 +113,13 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
         val texture = textureManager.laserTexture
         val textureRegion = TextureRegion(texture)
         val laserIntensity: Float = cell.laser?.intensity ?: 0f
+        val shouldRenderDeathTexture: Boolean = cell.piece?.isDead() ?: false
         val preDrawColor = game.batch.color.copy()
         game.batch.color = preDrawColor.copy(alpha = laserIntensity / 100f)
         game.batch.draw(textureRegion, cellX, cellY)
+        if(shouldRenderDeathTexture){
+            game.batch.draw(TextureRegion(textureManager.deathTexture), cellX, cellY)
+        }
         game.batch.color = preDrawColor
     }
 

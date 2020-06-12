@@ -84,7 +84,6 @@ class Board(val rows: Int, val cols: Int, piecesConfiguration: Map<BoardPos, Pie
                 if(currCell.piece is PharaohPiece){
                     pharaohHealth[currCell.piece!!.color] = false
                 }
-                currCell.piece = null
             }
             currCell = if(laserDirection!=null){
                 getNeighborCell(currCell, laserDirection)
@@ -136,11 +135,12 @@ class BoardCell(val pos: BoardPos, val cellColor: EPlayerColor?){
     }
 
     fun reduceLaserIntensity(delta: Float){
-//        println("reducing laser intensity by $delta")
         laser?.dropIntensity(delta)
         if(laser?.intensity ?: 0f <= 0f){
-//            println("shutting down laser")
             laser = null
+            if(piece!=null && piece!!.isDead()){
+                piece = null
+            }
         }
     }
 
