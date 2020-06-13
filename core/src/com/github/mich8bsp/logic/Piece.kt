@@ -65,7 +65,7 @@ class AnubisPiece(override val color: EPlayerColor, directionFront: EDirection =
     override var direction: EDirection = directionFront
 
     override fun hitWithRay(hitFromDirection: EDirection): EDirection? {
-        if(hitFromDirection == direction){
+        if(hitFromDirection != direction){
             health--
         }
         return null;
