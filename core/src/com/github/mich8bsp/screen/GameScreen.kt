@@ -11,6 +11,7 @@ import com.github.mich8bsp.logic.BoardCell
 import com.github.mich8bsp.logic.EDirection
 import com.github.mich8bsp.logic.ERotationDirection
 import com.github.mich8bsp.logic.GameplayManager
+import com.github.mich8bsp.multiplayer.EMultiplayerMode
 import ktx.app.KtxScreen
 import ktx.graphics.copy
 import ktx.graphics.use
@@ -74,15 +75,28 @@ class GameScreen(private val game: Game, private val gameplayManager: GameplayMa
                 }
             }
 
-            val isPlayerTurn = gameplayManager.isPlayerTurn()
-            val isGameOver = gameplayManager.isGameOver()
-            if(isGameOver){
-                val isWinner = gameplayManager.isWinner()
-                game.font.draw(game.batch, "Game Over. ${if(isWinner) "You won!" else "You lost..."}", 100f, ScreenConfig.viewportHeight - 50f)
-            }else {
-                game.font.draw(game.batch, "It's ${if(isPlayerTurn) "your" else "your opponent's"} turn", 100f, ScreenConfig.viewportHeight - 50f)
-            }
+            renderHeader();
 
+        }
+    }
+
+    private fun renderHeader() {
+        val isPlayerTurn = gameplayManager.isPlayerTurn()
+        val isGameOver = gameplayManager.isGameOver()
+        if(game.multiplayerMode == EMultiplayerMode.LOCAL){
+            if (isGameOver) {
+                val winnerColor = gameplayManager.getWinner()
+                game.font.draw(game.batch, "Game Over. $winnerColor won", 100f, ScreenConfig.viewportHeight - 50f)
+            } else {
+                game.font.draw(game.batch, "It's ${gameplayManager.getCurrPlayerToMove()} turn", 100f, ScreenConfig.viewportHeight - 50f)
+            }
+        }else {
+            if (isGameOver) {
+                val isWinner = gameplayManager.isWinner()
+                game.font.draw(game.batch, "Game Over. ${if (isWinner) "You won!" else "You lost..."}", 100f, ScreenConfig.viewportHeight - 50f)
+            } else {
+                game.font.draw(game.batch, "It's ${if (isPlayerTurn) "your" else "your opponent's"} turn", 100f, ScreenConfig.viewportHeight - 50f)
+            }
         }
     }
 

@@ -1,11 +1,13 @@
 package com.github.mich8bsp.logic
 
+import com.github.mich8bsp.multiplayer.EMultiplayerMode
 import com.github.mich8bsp.multiplayer.GameServerClient
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.launch
 
-class GameplayManager(private val player: Player) {
+class GameplayManager(private val player: Player,
+                    private val multiplayerMode: EMultiplayerMode) {
 
     private var gameOver: Boolean = false
     private val playerColor: EPlayerColor = player.color
@@ -17,20 +19,21 @@ class GameplayManager(private val player: Player) {
     private var lastMoveRecordCache: MoveRecord<out Move>? = null
     private var lastMovePlayedOutId: Long = 0
 
-
     private var cellSelected: BoardCell? = null
 
     fun connect(): GameplayManager {
-        val tickerChannel = ticker(delayMillis = 5_000, initialDelayMillis = 0)
+        if(multiplayerMode != EMultiplayerMode.LOCAL) {
+            val tickerChannel = ticker(delayMillis = 5_000, initialDelayMillis = 0)
 
-        GlobalScope.launch {
-            for (event in tickerChannel) {
-                val latestMoveRecord = GameServerClient.getLatestMove(player.playerId).await()
-                if (latestMoveRecord != null) {
-                    synchronized(latestMoveLock){
-                        val isNewMove: Boolean = lastMoveRecordCache == null || lastMoveRecordCache!!.recordId < latestMoveRecord.recordId
-                        if (isNewMove) {
-                            lastMoveRecordCache = latestMoveRecord
+            GlobalScope.launch {
+                for (event in tickerChannel) {
+                    val latestMoveRecord = GameServerClient.getLatestMove(player.playerId).await()
+                    if (latestMoveRecord != null) {
+                        synchronized(latestMoveLock) {
+                            val isNewMove: Boolean = lastMoveRecordCache == null || lastMoveRecordCache!!.recordId < latestMoveRecord.recordId
+                            if (isNewMove) {
+                                lastMoveRecordCache = latestMoveRecord
+                            }
                         }
                     }
                 }
@@ -52,8 +55,13 @@ class GameplayManager(private val player: Player) {
         }
     }
 
+    fun isPlayerAllowedToMove(): Boolean {
+        val isNetworkOpponentMove: Boolean = multiplayerMode==EMultiplayerMode.NETWORK && (currPlayerToMove!=playerColor)
+        return !gameOver && !isNetworkOpponentMove
+    }
+
     fun onCellSelected(cell: BoardCell) {
-        if (gameOver || (currPlayerToMove != playerColor)) {
+        if (!isPlayerAllowedToMove()) {
             return
         }
         cellSelected = when (cellSelected) {
@@ -62,7 +70,7 @@ class GameplayManager(private val player: Player) {
                 null
             }
             null -> {
-                if (cell.piece != null && cell.piece?.color == playerColor) {
+                if (cell.piece != null && cell.piece?.color == currPlayerToMove) {
                     cell.select()
                     cell
                 } else {
@@ -77,8 +85,10 @@ class GameplayManager(private val player: Player) {
                 }
                 if (moveValidator.validateMove(move)) {
                     board.makeMove(move)
-                    GameServerClient.sendMove(move, player.playerId)
-                    onMoveFinished(playerColor)
+                    if(multiplayerMode==EMultiplayerMode.NETWORK) {
+                        GameServerClient.sendMove(move, player.playerId)
+                    }
+                    onMoveFinished(currPlayerToMove)
                 } else {
                     println("Invalid move")
                 }
@@ -90,16 +100,18 @@ class GameplayManager(private val player: Player) {
     }
 
     fun onRotate(direction: ERotationDirection) {
-        if (gameOver || (currPlayerToMove != playerColor)) {
+        if (!isPlayerAllowedToMove()) {
             return
         }
-        val isRotationAllowed = cellSelected != null && cellSelected?.piece != null && cellSelected?.piece?.color == playerColor
+        val isRotationAllowed = cellSelected != null && cellSelected?.piece != null && cellSelected?.piece?.color == currPlayerToMove
         if (isRotationAllowed) {
             val move = RotationMove(cellSelected!!.pos, direction)
             if (moveValidator.validateMove(move)) {
                 board.makeMove(move)
-                GameServerClient.sendMove(move, player.playerId)
-                onMoveFinished(playerColor)
+                if(multiplayerMode == EMultiplayerMode.NETWORK) {
+                    GameServerClient.sendMove(move, player.playerId)
+                }
+                onMoveFinished(currPlayerToMove)
             } else {
                 println("Invalid move")
             }
@@ -122,6 +134,10 @@ class GameplayManager(private val player: Player) {
         return currPlayerToMove == playerColor
     }
 
+    fun getCurrPlayerToMove(): EPlayerColor {
+        return currPlayerToMove
+    }
+
     fun isGameOver(): Boolean {
         return gameOver
     }
@@ -131,6 +147,14 @@ class GameplayManager(private val player: Player) {
             false
         }else{
             board.getWinner() == playerColor
+        }
+    }
+
+    fun getWinner(): EPlayerColor? {
+        return if(!isGameOver()){
+            null
+        }else{
+            board.getWinner()
         }
     }
 
